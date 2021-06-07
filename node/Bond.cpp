@@ -249,16 +249,18 @@ void Bond::recordIncomingPacket(const SharedPtr<Path>& path, uint64_t packetId, 
 	bool shouldRecord = (packetId & (ZT_QOS_ACK_DIVISOR - 1) && (verb != Packet::VERB_ACK) && (verb != Packet::VERB_QOS_MEASUREMENT));
 	if (isFrame || shouldRecord) {
 		Mutex::Lock _l(_paths_m);
-		if (isFrame) {
-			++(path->_packetsIn);
-			_lastFrame = now;
-		}
-		if (shouldRecord) {
-			path->ackStatsIn[packetId] = payloadLength;
-			++(path->_packetsReceivedSinceLastAck);
-			path->qosStatsIn[packetId] = now;
-			++(path->_packetsReceivedSinceLastQoS);
-			path->packetValiditySamples.push(true);
+		if (path->bonded()) {
+			if (isFrame) {
+				++(path->_packetsIn);
+				_lastFrame = now;
+			}
+			if (shouldRecord) {
+				path->ackStatsIn[packetId] = payloadLength;
+				++(path->_packetsReceivedSinceLastAck);
+				path->qosStatsIn[packetId] = now;
+				++(path->_packetsReceivedSinceLastQoS);
+				path->packetValiditySamples.push(true);
+			}
 		}
 	}
 	/**
