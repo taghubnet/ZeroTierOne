@@ -22,6 +22,7 @@
 
 #include <list>
 #include <map>
+#include <cstdarg>
 
 namespace ZeroTier {
 
