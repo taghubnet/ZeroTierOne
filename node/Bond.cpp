@@ -455,7 +455,7 @@ void Bond::forgetFlowsWhenNecessary(uint64_t age, bool oldest, int64_t now)
 	if (age) {	 // Remove by specific age
 		while (it != _flows.end()) {
 			if (it->second->age(now) > age) {
-				log("bond", "forget flow %x (age %llu) (total flows: %lu)", it->first, (unsigned long long)oldestFlow->second->age(now), (unsigned long)(_flows.size() - 1));
+				log("bond", "forget flow %x (age %llu) (total flows: %lu)", it->first, (unsigned long long)it->second->age(now), (unsigned long)(_flows.size() - 1));
 				it->second->assignedPath()->_assignedFlowCount--;
 				it = _flows.erase(it);
 			}
@@ -1761,7 +1761,7 @@ void Bond::dumpPathStatus(const int64_t now, const SharedPtr<Path>& path, int id
 	char pathStr[64] = { 0 };
 	path->address().toString(pathStr);
 	log("bond",
-		"path status: [%2d] alive:%d, eli:%d, bonded:%d, flows:%5d, lat:   %5.4f, jitter:  %5.4f, error:  %5.4f, loss:  %5.4f, age:  %6d, ack: %6d --- (%s/%s)",
+		"path status: [%2d] alive:%d, eli:%d, bonded:%d, flows:%6d, lat:%10.3f, jitter:%10.3f, error:%6.4f, loss:%6.4f, age:%6d, ack:%6d --- (%s/%s)",
 		idx,
 		path->alive(now, true),
 		path->eligible(now, _ackSendInterval),
