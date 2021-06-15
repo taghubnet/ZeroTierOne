@@ -14,6 +14,7 @@
 #ifndef ZT_BOND_HPP
 #define ZT_BOND_HPP
 
+#include "../osdep/OSUtils.hpp"
 #include "Flow.hpp"
 #include "Packet.hpp"
 #include "Path.hpp"
@@ -44,12 +45,8 @@ class Bond {
 	};
 
   public:
-	// TODO: Remove
-	bool _header;
-	int64_t _lastLogTS;
-	int64_t _lastPrintTS;
-	void dumpInfo(const int64_t now);
-	bool relevant();
+	void dumpInfo(const int64_t now, bool force);
+	void dumpPathStatus(const int64_t now, const SharedPtr<Path>& path, int idx);
 
 	SharedPtr<Link> getLink(const SharedPtr<Path>& path);
 
@@ -666,6 +663,28 @@ class Bond {
 		return _peer;
 	}
 
+	/**
+	 * Emit message to tracing system but with added timestamp and subsystem info
+	 *
+	 * TODO: Will be replaced when better logging facilities exist in Trace.hpp
+	 */
+	void log(const char* subsystem, const char* fmt, ...)
+	{
+#define MAX_BOND_MSG_LEN 1024
+		char traceMsg[MAX_BOND_MSG_LEN];
+		char userMsg[MAX_BOND_MSG_LEN];
+		va_list args;
+		va_start(args, fmt);
+		if (vsnprintf(userMsg, sizeof(userMsg), fmt, args) < 0) {
+			fprintf(stderr, "Encountered format encoding error while writing to trace log\n");
+			return;
+		}
+		OSUtils::ztsnprintf(traceMsg, MAX_BOND_MSG_LEN, "%s (%llx/%s) %s", OSUtils::humanReadableTimestamp().c_str(), _peerId, _policyAlias.c_str(), userMsg);
+		va_end(args);
+		RR->t->bondStateMessage(NULL, traceMsg);
+#undef MAX_MSG_LEN
+	}
+
   private:
 	const RuntimeEnvironment* RR;
 	AtomicCounter __refCount;
@@ -783,6 +802,11 @@ class Bond {
 	SharedPtr<Peer> _peer;
 
 	/**
+	 * ID of the peer that this bond services
+	 */
+	unsigned long long _peerId;
+
+	/**
 	 * Rate-limit cutoffs
 	 */
 	uint16_t _qosCutoffCount;
@@ -791,6 +815,7 @@ class Bond {
 	/**
 	 * Recent event timestamps
 	 */
+	uint64_t _lastSummaryDump;
 	uint64_t _lastAckRateCheck;
 	uint64_t _lastQoSRateCheck;
 	uint64_t _lastQualityEstimation;

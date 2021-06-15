@@ -92,32 +92,22 @@ SharedPtr<Bond> BondController::createTransportTriggeredBond(const RuntimeEnviro
 		std::string policyAlias;
 		if (! _policyTemplateAssignments.count(identity)) {
 			if (_defaultBondingPolicy) {
-				sprintf(traceMsg, "%s (bond) Creating new default %s bond to peer %llx", OSUtils::humanReadableTimestamp().c_str(), getPolicyStrByCode(_defaultBondingPolicy).c_str(), (unsigned long long)identity);
-				RR->t->bondStateMessage(NULL, traceMsg);
 				bond = new Bond(renv, _defaultBondingPolicy, peer);
+				bond->log("bond", "new default bond");
 			}
 			if (! _defaultBondingPolicy && _defaultBondingPolicyStr.length()) {
-				sprintf(traceMsg, "%s (bond) Creating new default custom %s bond to peer %llx", OSUtils::humanReadableTimestamp().c_str(), _defaultBondingPolicyStr.c_str(), (unsigned long long)identity);
-				RR->t->bondStateMessage(NULL, traceMsg);
 				bond = new Bond(renv, _bondPolicyTemplates[_defaultBondingPolicyStr].ptr(), peer);
+				bond->log("bond", "new default custom bond");
 			}
 		}
 		else {
 			if (! _bondPolicyTemplates[_policyTemplateAssignments[identity]]) {
-				sprintf(
-					traceMsg,
-					"%s (bond) Creating new bond. Assignment for peer %llx was specified as %s but the bond definition was not found. Using default %s",
-					OSUtils::humanReadableTimestamp().c_str(),
-					(unsigned long long)identity,
-					_policyTemplateAssignments[identity].c_str(),
-					getPolicyStrByCode(_defaultBondingPolicy).c_str());
-				RR->t->bondStateMessage(NULL, traceMsg);
 				bond = new Bond(renv, _defaultBondingPolicy, peer);
+				bond->log("bond", "peer-specific bond, was specified as %s but the bond definition was not found, using default %s", _policyTemplateAssignments[identity].c_str(), getPolicyStrByCode(_defaultBondingPolicy).c_str());
 			}
 			else {
-				sprintf(traceMsg, "%s (bond) Creating new default bond %s to peer %llx", OSUtils::humanReadableTimestamp().c_str(), _defaultBondingPolicyStr.c_str(), (unsigned long long)identity);
-				RR->t->bondStateMessage(NULL, traceMsg);
 				bond = new Bond(renv, _bondPolicyTemplates[_policyTemplateAssignments[identity]].ptr(), peer);
+				bond->log("bond", "new default bond");
 			}
 		}
 	}

@@ -107,7 +107,6 @@ public:
 		_enabled(false),
 		_bonded(false),
 		_negotiated(false),
-		_deprecated(false),
 		_shouldReallocateFlows(false),
 		_assignedFlowCount(0),
 		_latencyMean(0),
@@ -156,7 +155,6 @@ public:
 		_enabled(false),
 		_bonded(false),
 		_negotiated(false),
-		_deprecated(false),
 		_shouldReallocateFlows(false),
 		_assignedFlowCount(0),
 		_latencyMean(0),
@@ -604,13 +602,6 @@ private:
 	 * Whether this path was intentionally negotiated by either peer.
 	 */
 	bool _negotiated;
-
-	/**
-	 * Whether this path has been deprecated due to performance issues. Current traffic flows
-	 * will be re-allocated to other paths in the most non-disruptive manner (if possible),
-	 * and new traffic will not be allocated to this path.
-	 */
-	bool _deprecated;
 
 	/**
 	 * Whether flows should be moved from this path. Current traffic flows will be re-allocated
