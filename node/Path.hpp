@@ -329,7 +329,7 @@ public:
 	 * @return True if this path is alive (receiving heartbeats)
 	 */
 	inline bool alive(const int64_t now, bool bondingEnabled = false) const {
-		return (bondingEnabled && _monitorInterval) ? ((now - _lastIn) < (_monitorInterval * 3)) : ((now - _lastIn) < (ZT_PATH_HEARTBEAT_PERIOD + 5000));
+		return (bondingEnabled && _monitorInterval) ? ((now - _lastIn) < ((_monitorInterval * 4) + _downDelay)) : ((now - _lastIn) < (ZT_PATH_HEARTBEAT_PERIOD + 5000));
 	}
 
 	/**
