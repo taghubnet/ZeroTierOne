@@ -1,20 +1,21 @@
 # vim: ft=dockerfile
 
-FROM debian:buster as stage
+FROM ubuntu:21.04 as stage
 
-ARG PACKAGE_BASEURL=https://download.zerotier.com/debian/buster/pool/main/z/zerotier-one/
-ARG ARCH=amd64
-ARG VERSION
+RUN apt-get update -qq && apt-get -qq install make clang
+COPY . .
+ENV ZT_DEBUG=true
+RUN /usr/bin/make
+RUN echo $PWD
+RUN cp zerotier-one /usr/sbin
 
-RUN apt-get update -qq && apt-get install curl -y
-RUN curl -sSL -o zerotier-one.deb "${PACKAGE_BASEURL}/zerotier-one_${VERSION}_${ARCH}.deb"
+FROM ubuntu:21.04
 
-FROM debian:buster
+COPY --from=stage /zerotier-one /usr/sbin
+RUN ln -sf /usr/sbin/zerotier-one /usr/sbin/zerotier-idtool
+RUN ln -sf /usr/sbin/zerotier-one /usr/sbin/zerotier-cli
 
-COPY --from=stage zerotier-one.deb .
-
-RUN dpkg -i zerotier-one.deb && rm -f zerotier-one.deb
-RUN echo "${VERSION}" >/etc/zerotier-version
+RUN echo "${VERSION}" > /etc/zerotier-version
 RUN rm -rf /var/lib/zerotier-one
 
 COPY entrypoint.sh.release /entrypoint.sh
