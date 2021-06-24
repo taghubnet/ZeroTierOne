@@ -17,6 +17,10 @@ RUN ln -sf /usr/sbin/zerotier-one /usr/sbin/zerotier-cli
 RUN echo "${VERSION}" > /etc/zerotier-version
 RUN rm -rf /var/lib/zerotier-one
 
+
+RUN apt-get -qq update
+RUN apt-get -qq install iproute2 net-tools fping 2ping iputils-ping iputils-arping
+
 COPY entrypoint.sh.release /entrypoint.sh
 RUN chmod 755 /entrypoint.sh
 
