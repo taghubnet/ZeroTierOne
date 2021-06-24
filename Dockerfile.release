@@ -4,8 +4,7 @@ FROM ubuntu:21.04 as stage
 
 RUN apt-get update -qq && apt-get -qq install make clang
 COPY . .
-ENV ZT_DEBUG=true
-RUN /usr/bin/make
+RUN /usr/bin/make debug
 RUN echo $PWD
 RUN cp zerotier-one /usr/sbin
 
