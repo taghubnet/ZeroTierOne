@@ -128,21 +128,56 @@ void Peer::received(
 
 				unsigned int replacePath = ZT_MAX_PEER_NETWORK_PATHS;
 				long replacePathQuality = 0;
+				int maxReplacementScore = 0;
+				bool foundFreeSlot = false;
+				int scores[ZT_MAX_PEER_NETWORK_PATHS] = { 0 };
+
 				for(unsigned int i=0;i<ZT_MAX_PEER_NETWORK_PATHS;++i) {
 					if (_paths[i].p) {
-						if ( (!_paths[i].p->alive(now)) || _paths[i].p->address().ipsEqual(path->address()) ) {
-							replacePath = i;
-							break;
-						} else {
-							const long q = _paths[i].p->quality(now) / _paths[i].priority;
-							if (q > replacePathQuality) {
-								replacePathQuality = q;
-								replacePath = i;
-							}
+						bool dead = !_paths[i].p->alive(now);
+						bool matching_ip = _paths[i].p->address().ipsEqual(path->address());
+						bool matching_port = _paths[i].p->address().port() == path->address().port();
+						bool matching_socket = _paths[i].p->localSocket() == path->localSocket();
+
+						if (dead) {
+							scores[i] += 1000;
 						}
-					} else {
+						if (matching_ip) {
+							scores[i] += 1;
+						}
+						if (matching_ip && matching_port) {
+							scores[i] += 1;
+						}
+						if (matching_ip && matching_port && matching_socket) {
+							scores[i] += 1;
+						}
+						// Mark for replacement
+						if (scores[i] > maxReplacementScore) {
+							maxReplacementScore = scores[i];
+							replacePath = i;
+						}
+					}
+					else {
+						foundFreeSlot = true;
 						replacePath = i;
 						break;
+					}
+				}
+				if (!foundFreeSlot) {
+					if (maxReplacementScore >= 1000) {
+						// Do nothing. We apparently found a dead path and have already marked it as a candidate
+					}
+					// If we couldn't find a replacement by matching, replacing a dead path, or taking a free slot, then replace by quality
+					else {
+						for(unsigned int i=0;i<ZT_MAX_PEER_NETWORK_PATHS;++i) {
+							if (_paths[i].p) {
+								const long q = _paths[i].p->quality(now) / _paths[i].priority;
+								if (q > replacePathQuality) {
+									replacePathQuality = q;
+									replacePath = i;
+								}
+							}
+						}
 					}
 				}
 

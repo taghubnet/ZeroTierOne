@@ -866,9 +866,6 @@ void Bond::curateBond(const int64_t now, bool rebuildBond)
 			for (int i = 0; i < ZT_MAX_PEER_NETWORK_PATHS; ++i) {
 				if (_paths[i]) {
 					SharedPtr<Link> link = RR->bc->getLinkBySocket(_policyAlias, _paths[i]->localSocket());
-					if (! linkMap.count(link)) {
-						// linkMap[link] = std::vector<int>(i);
-					}
 					linkMap[link].push_back(i);
 				}
 			}
