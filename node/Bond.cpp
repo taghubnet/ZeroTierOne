@@ -1628,7 +1628,7 @@ void Bond::setReasonableDefaults(int policy, SharedPtr<Bond> templateBond, bool 
 	 */
 	switch (policy) {
 		case ZT_BONDING_POLICY_ACTIVE_BACKUP:
-			_failoverInterval = 500;
+			_failoverInterval = 3000;
 			_abLinkSelectMethod = ZT_MULTIPATH_RESELECTION_POLICY_OPTIMIZE;
 			_linkMonitorStrategy = ZT_MULTIPATH_SLAVE_MONITOR_STRATEGY_DYNAMIC;
 			_qualityWeights[ZT_QOS_LAT_IDX] = 0.2f;
