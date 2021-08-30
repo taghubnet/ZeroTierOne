@@ -79,12 +79,11 @@
 #include "node/NetworkController.hpp"
 #include "node/Buffer.hpp"
 #include "node/World.hpp"
+#include "node/Bond.hpp"
 
 #include "osdep/OSUtils.hpp"
 #include "osdep/Http.hpp"
 #include "osdep/Thread.hpp"
-
-#include "node/BondController.hpp"
 
 #include "service/OneService.hpp"
 
@@ -537,8 +536,8 @@ static int cli(int argc,char **argv)
 									healthStr = "DEGRADED";
 								}
 								std::string policyStr = "none";
-								if (bondingPolicy >= ZT_BONDING_POLICY_NONE && bondingPolicy <= ZT_BONDING_POLICY_BALANCE_AWARE) {
-									policyStr = BondController::getPolicyStrByCode(bondingPolicy);
+								if (bondingPolicy >= ZT_BOND_POLICY_NONE && bondingPolicy <= ZT_BOND_POLICY_BALANCE_AWARE) {
+									policyStr = Bond::getPolicyStrByCode(bondingPolicy);
 								}
 								printf("%10s  %32s    %8s        %d/%d" ZT_EOL_S,
 									OSUtils::jsonString(p ["address"],"-").c_str(),
@@ -627,7 +626,7 @@ static int cli(int argc,char **argv)
 						int numTotalLinks = OSUtils::jsonInt(j["numTotalLinks"],0);
 						printf("Peer               : %s\n", arg1.c_str());
 						printf("Bond               : %s\n", OSUtils::jsonString(j["bondingPolicy"],"-").c_str());
-						//if (bondingPolicy == ZT_BONDING_POLICY_ACTIVE_BACKUP) {
+						//if (bondingPolicy == ZT_BOND_POLICY_ACTIVE_BACKUP) {
 						printf("Link Select Method : %d\n", (int)OSUtils::jsonInt(j["linkSelectMethod"],0));
 						//}
 						printf("Status             : %s\n", healthStr.c_str());
@@ -724,8 +723,8 @@ static int cli(int argc,char **argv)
 								healthStr = "Degraded";
 							}
 							std::string policyStr = "none";
-							if (bondingPolicy >= ZT_BONDING_POLICY_NONE && bondingPolicy <= ZT_BONDING_POLICY_BALANCE_AWARE) {
-								policyStr = BondController::getPolicyStrByCode(bondingPolicy);
+							if (bondingPolicy >= ZT_BOND_POLICY_NONE && bondingPolicy <= ZT_BOND_POLICY_BALANCE_AWARE) {
+								policyStr = Bond::getPolicyStrByCode(bondingPolicy);
 							}
 
 							printf("%10s  %32s    %8s        %d/%d" ZT_EOL_S,
