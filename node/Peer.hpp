@@ -418,21 +418,15 @@ public:
 	}
 
 	/**
-	 * Rate limit gate for inbound ECHO requests. This rate limiter works
-	 * by draining a certain number of requests per unit time. Each peer may
-	 * theoretically receive up to ZT_ECHO_CUTOFF_LIMIT requests per second.
+	 * Rate limit gate for inbound ECHO requests
 	 */
 	inline bool rateGateEchoRequest(const int64_t now)
 	{
-		// Multipath uses gratuitous ECHOs so we need to rate-limit these differently
-		if (now - _lastEchoRequestReceived <= (ZT_BOND_FAILOVER_MIN_INTERVAL / ZT_MAX_PEER_NETWORK_PATHS)) {
-			++_echoRequestCutoffCount;
+		if ((now - _lastEchoRequestReceived) >= ZT_PEER_GENERAL_RATE_LIMIT) {
+			_lastEchoRequestReceived = now;
+			return true;
 		}
-		else {
-			_echoRequestCutoffCount = 0;
-		}
-		_lastEchoRequestReceived = now;
-		return (_echoRequestCutoffCount < (ZT_MAX_PEER_NETWORK_PATHS * 2));
+		return false;
 	}
 
 	/**

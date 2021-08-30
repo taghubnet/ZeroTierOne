@@ -49,6 +49,9 @@ void DB::initNetwork(nlohmann::json &network)
 		}};
 	}
 	if (!network.count("dns")) network["dns"] = nlohmann::json::array();
+	if (!network.count("ssoEnabled")) network["ssoEnabled"] = false;
+	if (!network.count("clientId")) network["clientId"] = "";
+	if (!network.count("authorizationEndpoint")) network["authorizationEndpoint"] = "";
 
 	network["objtype"] = "network";
 }
@@ -56,6 +59,7 @@ void DB::initNetwork(nlohmann::json &network)
 void DB::initMember(nlohmann::json &member)
 {
 	if (!member.count("authorized")) member["authorized"] = false;
+	if (!member.count("ssoExempt")) member["ssoExempt"] = false;
 	if (!member.count("ipAssignments")) member["ipAssignments"] = nlohmann::json::array();
 	if (!member.count("activeBridge")) member["activeBridge"] = false;
 	if (!member.count("tags")) member["tags"] = nlohmann::json::array();
@@ -67,7 +71,7 @@ void DB::initMember(nlohmann::json &member)
 	if (!member.count("lastAuthorizedTime")) member["lastAuthorizedTime"] = 0ULL;
 	if (!member.count("lastAuthorizedCredentialType")) member["lastAuthorizedCredentialType"] = nlohmann::json();
 	if (!member.count("lastAuthorizedCredential")) member["lastAuthorizedCredential"] = nlohmann::json();
-	if (!member.count("authenticationExpiryTime")) member["authenticationExpiryTime"] = -1LL;
+	if (!member.count("authenticationExpiryTime")) member["authenticationExpiryTime"] = 0LL;
 	if (!member.count("vMajor")) member["vMajor"] = -1;
 	if (!member.count("vMinor")) member["vMinor"] = -1;
 	if (!member.count("vRev")) member["vRev"] = -1;
@@ -136,7 +140,6 @@ bool DB::get(const uint64_t networkId,nlohmann::json &network,const uint64_t mem
 		if (m == nw->members.end())
 			return false;
 		member = m->second;
-		updateMemberOnLoad(networkId, memberId, member);
 	}
 	return true;
 }
@@ -160,7 +163,6 @@ bool DB::get(const uint64_t networkId,nlohmann::json &network,const uint64_t mem
 		if (m == nw->members.end())
 			return false;
 		member = m->second;
-		updateMemberOnLoad(networkId, memberId, member);
 	}
 	return true;
 }
@@ -181,7 +183,6 @@ bool DB::get(const uint64_t networkId,nlohmann::json &network,std::vector<nlohma
 		network = nw->config;
 		for(auto m=nw->members.begin();m!=nw->members.end();++m) {
 			members.push_back(m->second);
-			updateMemberOnLoad(networkId, m->first, members.back());
 		}
 	}
 	return true;
@@ -195,9 +196,16 @@ void DB::networks(std::set<uint64_t> &networks)
 		networks.insert(n->first);
 }
 
+void DB::networkMemberSSOHasExpired(uint64_t nwid, int64_t now) {
+	std::lock_guard<std::mutex> l(_networks_l);
+	auto nw = _networks.find(nwid);
+	if (nw != _networks.end()) {
+		nw->second->mostRecentDeauthTime = now;
+	}
+}
+
 void DB::_memberChanged(nlohmann::json &old,nlohmann::json &memberConfig,bool notifyListeners)
 {
-	fprintf(stderr, "DB::_memberChanged\n");
 	uint64_t memberId = 0;
 	uint64_t networkId = 0;
 	bool isAuth = false;
@@ -313,7 +321,6 @@ void DB::_memberChanged(nlohmann::json &old,nlohmann::json &memberConfig,bool no
 
 void DB::_networkChanged(nlohmann::json &old,nlohmann::json &networkConfig,bool notifyListeners)
 {
-	fprintf(stderr, "DB::_networkChanged\n");
 	if (networkConfig.is_object()) {
 		const std::string ids = networkConfig["id"];
 		const uint64_t networkId = Utils::hexStrToU64(ids.c_str());

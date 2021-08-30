@@ -392,7 +392,9 @@ static int cli(int argc,char **argv)
 									char tmp[256];
 									std::string addr = path["address"];
 									const int64_t now = OSUtils::now();
-									OSUtils::ztsnprintf(tmp,sizeof(tmp),"%s;%lld;%lld",addr.c_str(),now - (int64_t)path["lastSend"],now - (int64_t)path["lastReceive"]);
+									int64_t lastSendDiff = (uint64_t)path["lastSend"] ? now - (uint64_t)path["lastSend"] : -1;
+									int64_t lastReceiveDiff = (uint64_t)path["lastReceive"] ? now - (uint64_t)path["lastReceive"] : -1;
+									OSUtils::ztsnprintf(tmp,sizeof(tmp),"%s;%lld;%lld",addr.c_str(),lastSendDiff,lastReceiveDiff);
 									bestPath = tmp;
 									break;
 								}
@@ -459,7 +461,9 @@ static int cli(int argc,char **argv)
 									char tmp[256];
 									std::string addr = path["address"];
 									const int64_t now = OSUtils::now();
-									OSUtils::ztsnprintf(tmp,sizeof(tmp),"%-8lld %-8lld %s",now - (int64_t)path["lastSend"],now - (int64_t)path["lastReceive"],addr.c_str());
+									int64_t lastSendDiff = (uint64_t)path["lastSend"] ? now - (uint64_t)path["lastSend"] : -1;
+									int64_t lastReceiveDiff = (uint64_t)path["lastReceive"] ? now - (uint64_t)path["lastReceive"] : -1;
+									OSUtils::ztsnprintf(tmp,sizeof(tmp),"%-8lld %-8lld %s",lastSendDiff,lastReceiveDiff,addr.c_str());
 									bestPath = std::string("DIRECT ") + tmp;
 									break;
 								}
@@ -794,12 +798,12 @@ static int cli(int argc,char **argv)
 								OSUtils::jsonString(n["type"],"-").c_str(),
 								OSUtils::jsonString(n["portDeviceName"],"-").c_str(),
 								aa.c_str());
-							int64_t authenticationExpiryTime = n["authenticationExpiryTime"];
-							if (authenticationExpiryTime >= 0) {
+							if (OSUtils::jsonBool(n["ssoEnabled"], false)) {
+								uint64_t authenticationExpiryTime = n["authenticationExpiryTime"];
 								if (status == "AUTHENTICATION_REQUIRED") {
 									printf("    AUTH EXPIRED, URL: %s" ZT_EOL_S, OSUtils::jsonString(n["authenticationURL"], "(null)").c_str());
 								} else if (status == "OK") {
-									printf("    AUTH OK, expires in: %lld seconds" ZT_EOL_S, (authenticationExpiryTime - OSUtils::now()) / 1000LL);
+									printf("    AUTH OK, expires in: %lld seconds" ZT_EOL_S, ((int64_t)authenticationExpiryTime - OSUtils::now()) / 1000LL);
 								}
 							}
 						}

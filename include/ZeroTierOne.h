@@ -1195,14 +1195,19 @@ typedef struct
 	ZT_VirtualNetworkDNS dns;
 
 	/**
-	 * If the status us AUTHENTICATION_REQUIRED, this may contain a URL for authentication.
+	 * sso enabled
 	 */
-	char authenticationURL[256];
+	bool ssoEnabled;
 
 	/**
-	 * Time that current authentication expires or -1 if external authentication is not required.
+	 * If the status us AUTHENTICATION_REQUIRED, this may contain a URL for authentication.
 	 */
-	int64_t authenticationExpiryTime;
+	char authenticationURL[2048];
+
+	/**
+	 * Time that current authentication expires. only valid if ssoEnabled is true
+	 */
+	uint64_t authenticationExpiryTime;
 } ZT_VirtualNetworkConfig;
 
 /**

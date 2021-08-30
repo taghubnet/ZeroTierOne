@@ -107,7 +107,7 @@ public:
 	virtual void eraseNetwork(const uint64_t networkId);
 	virtual void eraseMember(const uint64_t networkId, const uint64_t memberId);
 	virtual void nodeIsOnline(const uint64_t networkId, const uint64_t memberId, const InetAddress &physicalAddress);
-	virtual void updateMemberOnLoad(const uint64_t networkId, const uint64_t memberId, nlohmann::json &member);
+	virtual std::string getSSOAuthURL(const nlohmann::json &member, const std::string &redirectURL);
 
 protected:
 	struct _PairHasher
@@ -115,12 +115,10 @@ protected:
 		inline std::size_t operator()(const std::pair<uint64_t,uint64_t> &p) const { return (std::size_t)(p.first ^ p.second); }
 	};
 	virtual void _memberChanged(nlohmann::json &old,nlohmann::json &memberConfig,bool notifyListeners) {
-		fprintf(stderr, "PostgreSQL::_memberChanged\n");
 		DB::_memberChanged(old, memberConfig, notifyListeners);
 	}
 
 	virtual void _networkChanged(nlohmann::json &old,nlohmann::json &networkConfig,bool notifyListeners) {
-		fprintf(stderr, "PostgreSQL::_networkChanged\n");
 		DB::_networkChanged(old, networkConfig, notifyListeners);
 	}
 

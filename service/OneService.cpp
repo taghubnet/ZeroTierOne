@@ -253,6 +253,7 @@ static void _networkToJson(nlohmann::json &nj,const ZT_VirtualNetworkConfig *nc,
 
 	nj["authenticationURL"] = nc->authenticationURL;
 	nj["authenticationExpiryTime"] = nc->authenticationExpiryTime;
+	nj["ssoEnabled"] = nc->ssoEnabled;
 }
 
 static void _peerToJson(nlohmann::json &pj,const ZT_Peer *peer)
@@ -576,6 +577,7 @@ public:
 	Mutex _run_m;
 
 	RedisConfig *_rc;
+	std::string _ssoRedirectURL;
 
 	// end member variables ----------------------------------------------------
 
@@ -613,6 +615,7 @@ public:
 #endif
 		,_run(true)
 		,_rc(NULL)
+		,_ssoRedirectURL()
 	{
 		_ports[0] = 0;
 		_ports[1] = 0;
@@ -791,6 +794,9 @@ public:
 
 			// Network controller is now enabled by default for desktop and server
 			_controller = new EmbeddedNetworkController(_node,_homePath.c_str(),_controllerDbPath.c_str(),_ports[0], _rc);
+			if (!_ssoRedirectURL.empty()) {
+				_controller->setSSORedirectURL(_ssoRedirectURL);
+			}
 			_node->setNetconfMaster((void *)_controller);
 
 			// Join existing networks in networks.d
@@ -1048,6 +1054,8 @@ public:
 			const std::string cdbp(OSUtils::jsonString(settings["controllerDbPath"],""));
 			if (cdbp.length() > 0)
 				_controllerDbPath = cdbp;
+
+			_ssoRedirectURL = OSUtils::jsonString(settings["ssoRedirectURL"], "");
 
 #ifdef ZT_CONTROLLER_USE_LIBPQ
 			// TODO:  Redis config
@@ -2029,7 +2037,7 @@ public:
 				unsigned int mostMatchingPrefixBits = 0;
 				for(std::set<InetAddress>::const_iterator i(myIps.begin());i!=myIps.end();++i) {
 					const unsigned int matchingPrefixBits = i->matchingPrefixBits(*target);
-					if (matchingPrefixBits >= mostMatchingPrefixBits) {
+					if (matchingPrefixBits >= mostMatchingPrefixBits && ((target->isV4() && i->isV4()) || (target->isV6() && i->isV6()))) {
 						mostMatchingPrefixBits = matchingPrefixBits;
 						src = &(*i);
 					}
@@ -2626,7 +2634,6 @@ public:
 			case ZT_STATE_OBJECT_NETWORK_CONFIG:
 				OSUtils::ztsnprintf(dirname,sizeof(dirname),"%s" ZT_PATH_SEPARATOR_S "networks.d",_homePath.c_str());
 				OSUtils::ztsnprintf(p,sizeof(p),"%s" ZT_PATH_SEPARATOR_S "%.16llx.conf",dirname,(unsigned long long)id[0]);
-				secure = true;
 				break;
 			case ZT_STATE_OBJECT_PEER:
 				OSUtils::ztsnprintf(dirname,sizeof(dirname),"%s" ZT_PATH_SEPARATOR_S "peers.d",_homePath.c_str());
