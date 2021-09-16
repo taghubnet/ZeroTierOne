@@ -294,8 +294,6 @@ fn main() {
             }
             ("controller", Some(sub_cli_args)) => { 0 }
             ("identity", Some(sub_cli_args)) => crate::commands::identity::run(sub_cli_args),
-            ("locator", Some(sub_cli_args)) => crate::commands::locator::run(sub_cli_args),
-            ("cert", Some(sub_cli_args)) => crate::commands::cert::run(make_store(&cli_args), get_global_flags(&cli_args), sub_cli_args),
             _ => {
                 print_help(false);
                 1
