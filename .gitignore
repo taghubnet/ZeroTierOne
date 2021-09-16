@@ -82,6 +82,8 @@ debian/zerotier-one*.debhelper
 debian/*.log
 debian/zerotier-one.substvars
 root-watcher/config.json
+/target
+/**/target
 
 # Java/Android/JNI build droppings
 java/obj/
