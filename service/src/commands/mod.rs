@@ -19,5 +19,3 @@ pub(crate) mod join;
 pub(crate) mod leave;
 pub(crate) mod controller;
 pub(crate) mod identity;
-pub(crate) mod locator;
-pub(crate) mod cert;

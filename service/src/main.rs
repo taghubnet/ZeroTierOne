@@ -113,42 +113,6 @@ Advanced Operations:
     sign <?identity> <@file>               Sign a file with an identity's key
     verify <?identity> <@file> <sig>       Verify a signature
 
-  locator <command> [args]
-    new [-...] <?identity> <endpoint,...>  Create new signed locator
-      -r <revision>                        Revision number (default: time)
-    verify <?identity> <?locator>          Verify locator signature
-    show <?locator>                        Show contents of a locator
-
-  cert <command> [args]
-·   list                                   List certificates at local node
-    show <@cert|·serial>                   Show certificate details
-    newsuid [@secret out]                  Create a subject unique ID secret
-    newcsr <@csr out> <@secret out>        Create a CSR (interactive)
-    sign <@csr> <@cert out>                Sign a CSR to create a certificate
-      -u <usage flags (ex: sedacr)>          Set usage flags (recommended)
-         s                                     Usage: digital signature
-         n                                     Usage: non-repudiation
-         e                                     Usage: key encipherment
-         d                                     Usage: key decipherment
-         a                                     Usage: key agreement
-         c                                     Usage: certificate signing (CA)
-         r                                     Usage: CRL signing (CA)
-         x                                     Usage: executable signing
-         t                                     Usage: timestamping
-         z                                     Usage: ZeroTier root set
-      -t <timestamp, seconds since epoch>    Timestamp (default: current time)
-      -s <validity start time, seconds>      Start time (default: timestamp)
-      -l <#y|d|h|m|s... (ex: 1y, 3d12h)>     Time to live (default: forever)
-      -i <@issuer | self>                    Issuer or self-sign (required)
-      -k <@issuer secret>                    Secret key for issuer (required)
-    verify <@cert>                         Internally verify certificate
-·   import <@cert> [trust,trust,...]       Import certificate into this node
-      ca                                     Trust: root CA or self-signed
-      config                                 Trust: node configuration
-·   export <serial> [@cert]                Export a certificate from this node
-·   delete <serial|ALL>                    Delete certificate from this node
-·   factoryreset                           Re-import compiled-in default certs
-
     · Command (or command with argument type) requires a running node.
     @ Argument is the path to a file containing the object.
     ? Argument can be either the object or a path to it (auto-detected).
@@ -281,47 +245,6 @@ fn main() {
                     .arg(Arg::with_name("identity").index(1).required(true))
                     .arg(Arg::with_name("path").index(2).required(true))
                     .arg(Arg::with_name("signature").index(3).required(true))))
-            .subcommand(App::new("locator")
-                .subcommand(App::new("new")
-                    .arg(Arg::with_name("revision").short("r").required(false))
-                    .arg(Arg::with_name("identity").index(1).required(true))
-                    .arg(Arg::with_name("endpoint").index(2).multiple(true).required(true)))
-                .subcommand(App::new("verify")
-                    .arg(Arg::with_name("identity").index(1).required(true))
-                    .arg(Arg::with_name("locator").index(2).required(true)))
-                .subcommand(App::new("show")
-                    .arg(Arg::with_name("locator").index(1).required(true))))
-            .subcommand(App::new("cert")
-                .subcommand(App::new("list"))
-                .subcommand(App::new("show")
-                    .arg(Arg::with_name("serialorpath").index(1).required(true)))
-                .subcommand(App::new("newsuid")
-                    .arg(Arg::with_name("path").index(1).required(false)))
-                .subcommand(App::new("newcsr")
-                    .arg(Arg::with_name("csrpath").index(1).required(true))
-                    .arg(Arg::with_name("secretpath").index(2).required(true)))
-                .subcommand(App::new("sign")
-                    .arg(Arg::with_name("csr").index(1).required(true))
-                    .arg(Arg::with_name("certout").index(2).required(true))
-                    .arg(Arg::with_name("usage").short("u").required(false))
-                    .arg(Arg::with_name("timestamp").short("t").required(false))
-                    .arg(Arg::with_name("start").short("s").required(false))
-                    .arg(Arg::with_name("ttl").short("l").required(false))
-                    .arg(Arg::with_name("issuer").short("i").required(true))
-                    .arg(Arg::with_name("issuersecret").short("k").required(true)))
-                .subcommand(App::new("verify")
-                    .arg(Arg::with_name("cert").index(1).required(true)))
-                .subcommand(App::new("dump")
-                    .arg(Arg::with_name("cert").index(1).required(true)))
-                .subcommand(App::new("import")
-                    .arg(Arg::with_name("cert").index(1).required(true))
-                    .arg(Arg::with_name("trust").index(2).required(false)))
-                .subcommand(App::new("factoryreset"))
-                .subcommand(App::new("export")
-                    .arg(Arg::with_name("serial").index(1).required(true))
-                    .arg(Arg::with_name("path").index(2).required(false)))
-                .subcommand(App::new("delete")
-                    .arg(Arg::with_name("serial").index(1).required(true))))
             .help(help.as_str())
             .get_matches_from_safe(std::env::args());
         if args.is_err() {
